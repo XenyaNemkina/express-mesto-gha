@@ -13,15 +13,19 @@ const getUsers = (req, res) => {
 
 const getUser = (req, res) => {
   const { userId } = req.params;
-
   User.findById(userId)
+  .orFail(() => {
+    throw new Error('Not found')
+  })
   .then((user) => {
-    res.send({ data: user})
+
+    res.send({ data: user })
   })
   .catch((e) => {
     if(e.message == 'Not found') {
       res.status(404).send({ message: 'User not found' })
-    } else {
+    }
+    else {
       res.status(500).send({ message: 'Something is wrong' })
     }
   })
@@ -73,7 +77,7 @@ const updateAvatar = (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
-    { new: true, runValidators: true}
+    { new: true, runValidators: true }
   )
   .then((user) => {
     res.status(200).send(user);

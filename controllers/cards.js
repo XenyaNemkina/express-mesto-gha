@@ -1,9 +1,4 @@
 const Card = require('../models/cards');
-const {
-  ValidationError,
-  DocumentNotFoundError,
-  CastError,
-} = require('mongoose').Error;
 
 const getCards = (req, res) => {
   Card.find({})
@@ -23,7 +18,7 @@ const createCard = (req, res) => {
   .then((card) => card.populate('owner'))
   .then((card) => res.status(201).send(card))
   .catch((e) => {
-    if (e instanceof ValidationError) {
+    if (e.name == 'ValidationError') {
       return res.status(400).send({
         message: `Переданы некорректные данные`,
       })}
@@ -47,36 +42,44 @@ const likeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId,
   { $addToSet: { likes: req.user._id } },
   { new: true },
-)
-.orFail(() => {
-  throw new Error('Card not found')
-})
-.then((card) => res.status(200).send(card))
-.catch((e) => {
-  if (e instanceof DocumentNotFoundError) {
-    return res.status(404).send({ message: 'Такой карточки нет' })
-  } else if (e instanceof CastError) {
-    return res.status(400).send({ message: `Передан некорректный ID` })}
-  res.status(500).send({ message: 'Something is wrong' })
-})
+  )
+  .orFail(() => {
+    throw new Error('Card not found')
+  })
+  .then((card) => {
+    if (!card) {
+      return res.status(404).send({ message: 'Такой карточки нет' })
+    }
+    res.status(200).send(card)})
+  .catch((e) => {
+    if (e.name == 'CastError') {
+      return res.status(400).send({ message: `Передан некорректный ID` })}
+    if (e.message == 'Card not found') {
+      return res.status(404).send({ message: `Карточки не существует` })}
+    res.status(500).send({ message: 'Something is wrong' })
+  })
 };
 
 const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId,
-  { $pull: { likes: req.user._id } },
-  { new: true },
-)
-.orFail(() => {
-  throw new Error('Card not found')
-})
-.then((card) => res.status(200).send(card))
-.catch((e) => {
-  if (e instanceof DocumentNotFoundError) {
-    return res.status(404).send({ message: 'Такой карточки нет' })
-  } else if (e instanceof CastError) {
-    return res.status(400).send({ message: `Передан некорректный ID` })}
-  res.status(500).send({ message: 'Something is wrong' })
-})
-};
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
+  .orFail(() => {
+    throw new Error('Card not found')
+  })
+  .then((card) => {
+    if (!card) {
+      return res.status(404).send({ message: 'Такой карточки нет' })
+    }
+    res.status(200).send(card)})
+  .catch((e) => {
+    if (e.name == 'CastError') {
+      return res.status(400).send({ message: `Передан некорректный ID` })}
+    if (e.message == 'Card not found') {
+      return res.status(404).send({ message: `Карточки не существует` })}
+    res.status(500).send({ message: 'Something is wrong' })
+  })
+  };
 
 module.exports = { getCards, createCard, deleteCard, likeCard, dislikeCard }
