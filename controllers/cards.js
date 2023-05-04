@@ -71,6 +71,10 @@ const dislikeCard = (req, res) => {
 })
 .then((card) => res.status(200).send(card))
 .catch((e) => {
+  if (e instanceof DocumentNotFoundError) {
+    return res.status(404).send({ message: 'Такой карточки нет' })
+  } else if (e instanceof CastError) {
+    return res.status(400).send({ message: `Передан некорректный ID` })}
   res.status(500).send({ message: 'Something is wrong' })
 })
 };
