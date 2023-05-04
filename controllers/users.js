@@ -1,6 +1,5 @@
 const User = require('../models/users');
 
-
 const getUsers = (req, res) => {
   User.find({})
   .then((users) => {
@@ -15,19 +14,19 @@ const getUser = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
   .orFail(() => {
-    throw new Error('Not found')
+    throw new Error('User not found')
   })
   .then((user) => {
-
-    res.send({ data: user })
-  })
+    if (!user) {
+      return res.status(404).send({ message: 'Такого пользователя нет' })
+    }
+    res.status(200).send(user)})
   .catch((e) => {
-    if(e.message == 'Not found') {
-      res.status(404).send({ message: 'User not found' })
-    }
-    else {
-      res.status(500).send({ message: 'Something is wrong' })
-    }
+    if (e.name == 'CastError') {
+      return res.status(400).send({ message: `Передан некорректный ID` })}
+    if (e.message == 'User not found') {
+      return res.status(404).send({ message: `Такого пользователя нет` })}
+    res.status(500).send({ message: 'Something is wrong' })
   })
 };
 

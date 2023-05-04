@@ -32,8 +32,16 @@ const deleteCard = (req, res) => {
   .orFail(() => {
     throw new Error('Card not found')
   })
-  .then((card) => res.send(card))
+  .then((card) => {
+    if (!card) {
+      return res.status(404).send({ message: 'Такой карточки нет' })
+    }
+    res.status(200).send(card)})
   .catch((e) => {
+    if (e.name == 'CastError') {
+      return res.status(400).send({ message: `Передан некорректный ID` })}
+    if (e.message == 'Card not found') {
+      return res.status(404).send({ message: `Карточки не существует` })}
     res.status(500).send({ message: 'Something is wrong' })
   })
 };
