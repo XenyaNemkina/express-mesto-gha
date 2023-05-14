@@ -39,11 +39,15 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
+  const { _id } = req.user;
   Card.findByIdAndRemove(cardId)
     .orFail()
     .then((card) => {
       if (!card) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такой карточки нет' });
+      }
+      if (card.owner.valueOf() !== _id) {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Нельзя удалить чужую карточку!' });
       }
       return res.status(HTTP_STATUS_OK).send(card);
     })

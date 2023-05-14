@@ -1,4 +1,6 @@
 const http2 = require('http2');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
 const User = require('../models/users');
 
@@ -41,11 +43,34 @@ const getUser = (req, res) => {
     });
 };
 
-const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+const getCurrentUser = (req, res) => {
+  const { _id } = req.user;
+  User.findById(_id)
     .then((user) => {
-      res.status(HTTP_STATUS_CREATED).send(user);
+      res.status(200).send(user);
+    })
+    .catch((e) => {
+      if (e instanceof ValidationError) {
+        const message = Object.values(e.errors)
+          .map((error) => error.message)
+          .join('; ');
+        res.status(HTTP_STATUS_BAD_REQUEST).send({ message });
+        res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
+      }
+    });
+};
+
+const createUser = (req, res) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((user) => {
+      res.status(HTTP_STATUS_CREATED).send({ user });
     })
     .catch((e) => {
       if (e instanceof ValidationError) {
@@ -103,10 +128,37 @@ const updateAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      return bcrypt.compare(password, user.password);
+    })
+    .then((matched) => {
+      if (!matched) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      return res.send({ message: 'Все верно!' });
+    })
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });
+      res.cookie('jwt', token, { httpOnly: true, sameSite: true, maxAge: 3600000 * 24 * 7 });
+      res.status(200).send({ message: 'Аутентификация прошла успешно' });
+    })
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
+    });
+};
+
 module.exports = {
+  getCurrentUser,
   getUsers,
   getUser,
   createUser,
   updateUser,
   updateAvatar,
+  login,
 };
