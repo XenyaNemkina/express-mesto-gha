@@ -12,17 +12,15 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR, // 500
 } = http2.constants;
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       res.send({ users });
     })
-    .catch(() => {
-      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-    });
+    .catch(next);
 };
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
     .orFail()
@@ -32,35 +30,19 @@ const getUser = (req, res) => {
       }
       return res.status(HTTP_STATUS_OK).send(user);
     })
-    .catch((e) => {
-      if (e instanceof CastError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Передан некорректный ID' });
-      }
-      if (e instanceof DocumentNotFoundError) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет' });
-      }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-    });
+    .catch(next);
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
   User.findById(_id)
     .then((user) => {
       res.status(200).send(user);
     })
-    .catch((e) => {
-      if (e instanceof ValidationError) {
-        const message = Object.values(e.errors)
-          .map((error) => error.message)
-          .join('; ');
-        res.status(HTTP_STATUS_BAD_REQUEST).send({ message });
-        res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-      }
-    });
+    .catch(next);
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -72,19 +54,10 @@ const createUser = (req, res) => {
     .then((user) => {
       res.status(HTTP_STATUS_CREATED).send({ user });
     })
-    .catch((e) => {
-      if (e instanceof ValidationError) {
-        const message = Object.values(e.errors)
-          .map((error) => error.message)
-          .join('; ');
-        res.status(HTTP_STATUS_BAD_REQUEST).send({ message });
-      } else {
-        res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-      }
-    });
+    .catch(next);
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -94,19 +67,10 @@ const updateUser = (req, res) => {
     .then((user) => {
       res.status(HTTP_STATUS_OK).send(user);
     })
-    .catch((e) => {
-      if (e instanceof ValidationError) {
-        const message = Object.values(e.errors)
-          .map((error) => error.message)
-          .join('; ');
-        res.status(HTTP_STATUS_BAD_REQUEST).send({ message });
-      } else {
-        res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-      }
-    });
+    .catch(next);
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -116,19 +80,10 @@ const updateAvatar = (req, res) => {
     .then((user) => {
       res.status(HTTP_STATUS_OK).send(user);
     })
-    .catch((e) => {
-      if (e instanceof ValidationError) {
-        const message = Object.values(e.errors)
-          .map((error) => error.message)
-          .join('; ');
-        res.status(HTTP_STATUS_BAD_REQUEST).send({ message });
-      } else {
-        res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-      }
-    });
+    .catch(next);
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ email })
     .then((user) => {
@@ -148,9 +103,7 @@ const login = (req, res) => {
       res.cookie('jwt', token, { httpOnly: true, sameSite: true, maxAge: 3600000 * 24 * 7 });
       res.status(200).send({ message: 'Аутентификация прошла успешно' });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
 
 module.exports = {

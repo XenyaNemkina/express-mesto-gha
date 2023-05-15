@@ -1,5 +1,4 @@
 const http2 = require('http2');
-const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
 const Card = require('../models/cards');
 
 const {
@@ -7,37 +6,27 @@ const {
   HTTP_STATUS_CREATED, // 201
   HTTP_STATUS_BAD_REQUEST, // 400
   HTTP_STATUS_NOT_FOUND, // 404
-  HTTP_STATUS_INTERNAL_SERVER_ERROR, // 500
 } = http2.constants;
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => {
       res.send(cards);
     })
-    .catch(() => {
-      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-    });
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const ownerId = req.user._id;
   Card.create({ name, link, owner: ownerId })
     .then((card) => card.populate('owner'))
     .then((card) => res.status(HTTP_STATUS_CREATED).send(card))
-    .catch((e) => {
-      if (e instanceof ValidationError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные',
-        });
-      }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-    });
+    .catch(next);
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const { _id } = req.user;
   Card.findByIdAndRemove(cardId)
@@ -51,18 +40,10 @@ const deleteCard = (req, res) => {
       }
       return res.status(HTTP_STATUS_OK).send(card);
     })
-    .catch((e) => {
-      if (e instanceof CastError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Передан некорректный ID' });
-      }
-      if (e instanceof DocumentNotFoundError) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточки не существует' });
-      }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-    });
+    .catch(next);
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -75,18 +56,10 @@ const likeCard = (req, res) => {
       }
       return res.status(HTTP_STATUS_OK).send(card);
     })
-    .catch((e) => {
-      if (e instanceof CastError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Передан некорректный ID' });
-      }
-      if (e instanceof DocumentNotFoundError) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточки не существует' });
-      }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-    });
+    .catch(next);
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -99,15 +72,7 @@ const dislikeCard = (req, res) => {
       }
       return res.status(HTTP_STATUS_OK).send(card);
     })
-    .catch((e) => {
-      if (e instanceof CastError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Передан некорректный ID' });
-      }
-      if (e instanceof DocumentNotFoundError) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточки не существует' });
-      }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
-    });
+    .catch(next);
 };
 
 module.exports = {
