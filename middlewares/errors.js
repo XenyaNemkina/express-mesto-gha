@@ -22,7 +22,7 @@ module.exports = ((e, req, res, next) => {
     return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточки не существует' });
   }
   if (e.code === 11000) {
-    return res.status(HTTP_STATUS_CONFLICT).send({ message: 'Данный email зарегистрирован ранее. Пожалуйста укажите другой' });
+    return res.status(HTTP_STATUS_CONFLICT).send({ message: 'Пользователь уже существует' });
   }
   res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Something is wrong' });
   return next();

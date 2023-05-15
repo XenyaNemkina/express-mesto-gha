@@ -1,15 +1,12 @@
 const http2 = require('http2');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
 const User = require('../models/users');
 
 const {
   HTTP_STATUS_OK, // 200
   HTTP_STATUS_CREATED, // 201
-  HTTP_STATUS_BAD_REQUEST, // 400
   HTTP_STATUS_NOT_FOUND, // 404
-  HTTP_STATUS_INTERNAL_SERVER_ERROR, // 500
 } = http2.constants;
 
 const getUsers = (req, res, next) => {
