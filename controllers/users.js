@@ -88,23 +88,19 @@ const updateAvatar = (req, res, next) => {
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-  User.findOne({ email }).select('+password')
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+      if (!user || !password) {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Неверный email или пароль.' });
       }
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-      return res.send({ message: 'Все верно!' });
-    })
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });
-      res.cookie('jwt', token, { httpOnly: true, sameSite: true, maxAge: 3600000 * 24 * 7 });
-      res.status(200).send({ message: 'Аутентификация прошла успешно' });
+      const token = jwt.sign(
+        { _id: user._id },
+        'some-secret-key',
+        {
+          expiresIn: '7d',
+        },
+      );
+      return res.send({ token });
     })
     .catch(next);
 };
