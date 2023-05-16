@@ -4,7 +4,7 @@ const Card = require('../models/cards');
 const {
   HTTP_STATUS_OK, // 200
   HTTP_STATUS_CREATED, // 201
-  HTTP_STATUS_BAD_REQUEST, // 400
+  HTTP_STATUS_FORBIDDEN, // 403
   HTTP_STATUS_NOT_FOUND, // 404
 } = http2.constants;
 
@@ -36,7 +36,7 @@ const deleteCard = (req, res, next) => {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такой карточки нет' });
       }
       if (card.owner.valueOf() !== _id) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Нельзя удалить чужую карточку!' });
+        return res.status(HTTP_STATUS_FORBIDDEN).send({ message: 'Нельзя удалить чужую карточку!' });
       }
       return res.status(HTTP_STATUS_OK).send(card);
     })
