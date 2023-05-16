@@ -6,6 +6,7 @@ const User = require('../models/users');
 const {
   HTTP_STATUS_OK, // 200
   HTTP_STATUS_CREATED, // 201
+  HTTP_STATUS_UNAUTHORIZED, // 401
   HTTP_STATUS_NOT_FOUND, // 404
 } = http2.constants;
 
@@ -31,10 +32,12 @@ const getUser = (req, res, next) => {
 };
 
 const getCurrentUser = (req, res, next) => {
-  const { _id } = req.user;
-  User.findById(_id)
+  User.findById(req.user.id)
     .then((user) => {
-      res.status(200).send(user);
+      if (!user) {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет' });
+      }
+      return res.status(HTTP_STATUS_OK).send(user);
     })
     .catch(next);
 };
@@ -86,13 +89,10 @@ const updateAvatar = (req, res, next) => {
     .catch(next);
 };
 
-const login = (req, res, next) => {
+const login = (req, res) => {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
+  User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user || !password) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Неверный email или пароль.' });
-      }
       const token = jwt.sign(
         { _id: user._id },
         'some-secret-key',
@@ -100,9 +100,14 @@ const login = (req, res, next) => {
           expiresIn: '7d',
         },
       );
-      return res.send({ token });
+      res.cookie('jwt', token, {
+        maxAge: 3600000,
+        httpOnly: true,
+        sameSite: true,
+      })
+        .send({ token });
     })
-    .catch(next);
+    .catch(() => res.status(HTTP_STATUS_UNAUTHORIZED).send({ message: 'Необходимо авторизоваться' }));
 };
 
 module.exports = {

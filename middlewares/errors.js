@@ -1,8 +1,15 @@
-const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
+const {
+  CastError,
+  ValidationError,
+  DocumentNotFoundError,
+} = require('mongoose').Error;
 const http2 = require('http2');
+
+const UnauthorizedError = require('../errors/UnautorizedError');
 
 const {
   HTTP_STATUS_BAD_REQUEST, // 400
+  HTTP_STATUS_UNAUTHORIZED, // 400
   HTTP_STATUS_NOT_FOUND, // 404
   HTTP_STATUS_CONFLICT, // 409
   HTTP_STATUS_INTERNAL_SERVER_ERROR, // 500
@@ -20,6 +27,9 @@ module.exports = ((e, req, res, next) => {
   }
   if (e instanceof DocumentNotFoundError) {
     return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточки не существует' });
+  }
+  if (e instanceof UnauthorizedError) {
+    return res.status(HTTP_STATUS_UNAUTHORIZED).send({ message: 'Необходимо авторизоваться' });
   }
   if (e.code === 11000) {
     return res.status(HTTP_STATUS_CONFLICT).send({ message: 'Пользователь уже существует' });
