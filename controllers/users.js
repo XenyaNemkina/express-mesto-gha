@@ -19,12 +19,10 @@ const getUsers = (req, res, next) => {
 };
 
 const getUser = (req, res, next) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .orFail()
+  User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет' });
+        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет1' });
       }
       return res.status(HTTP_STATUS_OK).send(user);
     })
@@ -32,7 +30,7 @@ const getUser = (req, res, next) => {
 };
 
 const getCurrentUser = (req, res, next) => {
-  User.findById(req.user.id)
+  User.findById(req.user._id)
     .then((user) => {
       if (!user) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет' });
@@ -94,7 +92,7 @@ const login = (req, res) => {
   User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign(
-        { id: user._id },
+        { _id: user._id },
         'some-secret-key',
         {
           expiresIn: '7d',
