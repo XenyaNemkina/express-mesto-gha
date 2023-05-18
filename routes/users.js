@@ -24,8 +24,6 @@ userRouter.get(
   getUser,
 );
 
-
-
 userRouter.patch(
   '/me',
   celebrate({
