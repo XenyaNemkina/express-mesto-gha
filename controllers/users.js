@@ -19,23 +19,27 @@ const getUsers = (req, res, next) => {
 };
 
 const getUser = (req, res, next) => {
-  User.findById(req.params.userId)
+  const _id = req.params.userId;
+
+  User.findById(({ _id }))
     .then((user) => {
       if (!user) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет1' });
       }
-      return res.status(HTTP_STATUS_OK).send(user);
+      return res.status(HTTP_STATUS_OK).send({ data: user });
     })
     .catch(next);
 };
 
 const getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
+  const { _id } = req.user;
+  console.log({ _id });
+  User.findById({ _id })
     .then((user) => {
       if (!user) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет' });
       }
-      return res.status(HTTP_STATUS_OK).send(user);
+      return res.status(HTTP_STATUS_OK).send({ data: user });
     })
     .catch(next);
 };
