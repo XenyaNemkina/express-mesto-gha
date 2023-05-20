@@ -6,8 +6,6 @@ const User = require('../models/users');
 const {
   HTTP_STATUS_OK, // 200
   HTTP_STATUS_CREATED, // 201
-  HTTP_STATUS_UNAUTHORIZED, // 401
-  HTTP_STATUS_NOT_FOUND, // 404
 } = http2.constants;
 
 const getUsers = (req, res, next) => {
@@ -20,26 +18,20 @@ const getUsers = (req, res, next) => {
 
 const getUser = (req, res, next) => {
   const _id = req.params.userId;
-
   User.findById(({ _id }))
+    .orFail(() => next(new Error('not found')))
     .then((user) => {
-      if (!user) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет1' });
-      }
-      return res.status(HTTP_STATUS_OK).send({ data: user });
+      res.status(HTTP_STATUS_OK).send({ data: user });
     })
     .catch(next);
 };
 
 const getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
-  console.log({ _id });
   User.findById({ _id })
+    .orFail(() => next(new Error('not found')))
     .then((user) => {
-      if (!user) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такого пользователя нет' });
-      }
-      return res.status(HTTP_STATUS_OK).send({ data: user });
+      res.status(HTTP_STATUS_OK).send({ data: user });
     })
     .catch(next);
 };
@@ -91,7 +83,7 @@ const updateAvatar = (req, res, next) => {
     .catch(next);
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
@@ -109,7 +101,7 @@ const login = (req, res) => {
       })
         .send({ token });
     })
-    .catch(() => res.status(HTTP_STATUS_UNAUTHORIZED).send({ message: 'Необходимо авторизоваться' }));
+    .catch(next);
 };
 
 module.exports = {

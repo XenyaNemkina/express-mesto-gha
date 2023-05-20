@@ -6,6 +6,7 @@ const {
 const http2 = require('http2');
 
 const UnauthorizedError = require('../errors/UnautorizedError');
+// const NotFoundError = require('../errors/NotFoundError');
 
 const {
   HTTP_STATUS_BAD_REQUEST, // 400
@@ -25,12 +26,16 @@ module.exports = ((e, req, res, next) => {
   if (e instanceof CastError) {
     return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Передан некорректный ID' });
   }
+  if (e.message === 'not found') {
+    return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
+  }
   if (e instanceof DocumentNotFoundError) {
     return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточки не существует' });
   }
   if (e instanceof UnauthorizedError) {
     return res.status(HTTP_STATUS_UNAUTHORIZED).send({ message: 'Необходимо авторизоваться' });
   }
+
   if (e.code === 11000) {
     return res.status(HTTP_STATUS_CONFLICT).send({ message: 'Пользователь уже существует' });
   }
