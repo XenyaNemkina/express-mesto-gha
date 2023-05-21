@@ -1,6 +1,7 @@
 const http2 = require('http2');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { NotFoundError } = require('../errors/NotFoundError');
 const User = require('../models/users');
 
 const {
@@ -18,7 +19,7 @@ const getUsers = (req, res, next) => {
 
 const findUser = (req, res, _id, next) => {
   User.findById(({ _id }))
-    .orFail(() => next(new Error('not found')))
+    .orFail(() => next(new NotFoundError('Пользователь не найден')))
     .then((user) => {
       res.status(HTTP_STATUS_OK).send({ data: user });
     })
