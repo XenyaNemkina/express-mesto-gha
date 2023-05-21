@@ -56,30 +56,22 @@ const createUser = (req, res, next) => {
     .catch(next);
 };
 
-const updateUser = (req, res, next) => {
-  const { name, about } = req.body;
-  User.findByIdAndUpdate(
-    req.user._id,
-    { name, about },
-    { new: true, runValidators: true },
-  )
+const updateData = (req, res, data, next) => {
+  User.findByIdAndUpdate(req.user._id, data, { new: true, runValidators: true })
     .then((user) => {
       res.status(HTTP_STATUS_OK).send(user);
     })
     .catch(next);
 };
 
+const updateUser = (req, res, next) => {
+  const data = req.body;
+  updateData(req, res, data, next);
+};
+
 const updateAvatar = (req, res, next) => {
-  const { avatar } = req.body;
-  User.findByIdAndUpdate(
-    req.user._id,
-    { avatar },
-    { new: true, runValidators: true },
-  )
-    .then((user) => {
-      res.status(HTTP_STATUS_OK).send(user);
-    })
-    .catch(next);
+  const data = req.body;
+  updateData(req, res, data, next);
 };
 
 const login = (req, res, next) => {
