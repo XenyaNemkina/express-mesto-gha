@@ -1,6 +1,6 @@
 const http2 = require('http2');
-const { DocumentNotFoundError } = require('mongoose').Error;
 const { ForbiddenError } = require('../errors/ForbiddenError');
+const { NotFoundError } = require('../errors/NotFoundError');
 const Card = require('../models/cards');
 
 const {
@@ -27,17 +27,18 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  const { _id } = req.params.cardId;
-  Card.findById({ _id })
-    .orFail()
+  const { cardId } = req.params;
+  const { _id } = req.user;
+  Card.findById(cardId)
     .then((card) => {
-      Card.deleteOne({ _id: card._id, owner: req.user._id })
-        .then((result) => {
-          if (result.deletedCount === 0) {
-            next(new ForbiddenError('Нельзя удалить чужую карточку!'));
-          } else {
-            res.status(HTTP_STATUS_OK).send('Карточка удалена!')}
-        })
+      if (!card) {
+        next(new NotFoundError('Карточка не найдена.'));
+      }
+      if (card.owner.valueOf() !== _id) {
+        next(new ForbiddenError('Нельзя удалить чужую карточку!'));
+      }
+      Card.findByIdAndRemove(cardId)
+        .then((delCard) => res.status(200).send(delCard))
         .catch(next);
     })
     .catch(next);
@@ -52,7 +53,7 @@ const cardLikesChange = (req, res, data, next) => {
     .orFail()
     .then((card) => {
       if (!card) {
-        return next(new DocumentNotFoundError('Такой карточки нет'));
+        return next(new NotFoundError('Карточка не найдена.'));
       }
       return res.status(HTTP_STATUS_OK).send(card);
     })
