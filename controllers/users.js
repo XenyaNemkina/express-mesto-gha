@@ -16,8 +16,7 @@ const getUsers = (req, res, next) => {
     .catch(next);
 };
 
-const getUser = (req, res, next) => {
-  const _id = req.params.userId;
+const findUser = (req, res, _id, next) => {
   User.findById(({ _id }))
     .orFail(() => next(new Error('not found')))
     .then((user) => {
@@ -26,14 +25,14 @@ const getUser = (req, res, next) => {
     .catch(next);
 };
 
+const getUser = (req, res, next) => {
+  const _id = req.params.userId;
+  findUser(req, res, _id, next);
+};
+
 const getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
-  User.findById({ _id })
-    .orFail(() => next(new Error('not found')))
-    .then((user) => {
-      res.status(HTTP_STATUS_OK).send({ data: user });
-    })
-    .catch(next);
+  findUser(req, res, _id, next);
 };
 
 const createUser = (req, res, next) => {
