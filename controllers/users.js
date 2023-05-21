@@ -19,10 +19,10 @@ const getUsers = (req, res, next) => {
 
 const findUser = (req, res, _id, next) => {
   User.findById(({ _id }))
-    .orFail(() => next(new NotFoundError('Пользователь не найден')))
+    .orFail()
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Пользователь не найден'));
+        next(new NotFoundError({ message: 'Пользователь не найден' }));
       }
       res.status(HTTP_STATUS_OK).send({ data: user });
     })
