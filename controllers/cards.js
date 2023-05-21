@@ -29,7 +29,7 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const { _id } = req.user;
-  Card.findByIdAndRemove(cardId)
+  Card.findById(cardId)
     .orFail()
     .then((card) => {
       if (!card) {
@@ -38,7 +38,9 @@ const deleteCard = (req, res, next) => {
       if (card.owner.valueOf() !== _id) {
         return res.status(HTTP_STATUS_FORBIDDEN).send({ message: 'Нельзя удалить чужую карточку!' });
       }
-      return res.status(HTTP_STATUS_OK).send(card);
+      return Card.findByIdAndRemove(cardId)
+        .then((delCard) => res.status(HTTP_STATUS_OK).send(delCard))
+        .catch(next);
     })
     .catch(next);
 };

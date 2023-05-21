@@ -98,8 +98,8 @@ const login = (req, res, next) => {
         maxAge: 3600000,
         httpOnly: true,
         sameSite: true,
-      })
-        .send({ token });
+      });
+      res.status(HTTP_STATUS_OK).send({ message: 'Аутентификация прошла успешно' });
     })
     .catch(next);
 };
