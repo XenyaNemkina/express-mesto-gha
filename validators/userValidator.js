@@ -39,7 +39,6 @@ const validatorCreateUser = celebrate({
   }),
 });
 
-
 module.exports = {
   validateUser,
   validateUserMe,
