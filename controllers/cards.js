@@ -7,6 +7,10 @@ const {
   HTTP_STATUS_OK, // 200
   HTTP_STATUS_CREATED, // 201
 } = http2.constants;
+const {
+  HTTP_STATUS_FORBIDDEN, // 403
+  HTTP_STATUS_NOT_FOUND, // 404
+} = http2.constants;
 
 const getCards = (req, res, next) => {
   Card.find({})
@@ -27,18 +31,19 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
+  const { cardId } = req.params;
   Card.findById(req.params.cardId)
-    .populate('owner')
+    .orFail()
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Такой карточки нет');
+        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такой карточки нет' });
       }
-      if (card.owner._id.toString() !== req.user.id.toString()) {
-        throw new ForbiddenError('Нельзя удалить чужую карточку');
+      if (card.owner._id.toString() !== req.user._id.toString()) {
+        return res.status(HTTP_STATUS_FORBIDDEN).send({ message: 'Нельзя удалить чужую карточку!' });
       }
-      Card.findByIdAndDelete(req.params.cardId)
-        .populate('owner')
-        .then((cardToDelete) => res.send({ data: cardToDelete }));
+      return Card.findByIdAndRemove(cardId)
+        .then((delCard) => res.status(HTTP_STATUS_OK).send(delCard))
+        .catch(next);
     })
     .catch(next);
 };
