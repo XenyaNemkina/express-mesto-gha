@@ -27,10 +27,11 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  const { cardId } = req.params;
-  const { _id } = req.user;
-  Card.findById(cardId)
-    .orFail()
+  const { _id } = req.params.cardId;
+  Card.findOne({ _id })
+    .populate([
+      { path: 'owner', model: 'user' },
+    ])
     .then((card) => {
       if (!card) {
         return next(new DocumentNotFoundError('Такой карточки нет'));
@@ -38,7 +39,7 @@ const deleteCard = (req, res, next) => {
       if (card.owner.valueOf() !== _id) {
         return next(new ForbiddenError('Нельзя удалить чужую карточку!'));
       }
-      return Card.findByIdAndRemove(cardId)
+      return Card.findByIdAndRemove({ _id })
         .then((delCard) => res.status(HTTP_STATUS_OK).send(delCard))
         .catch(next);
     })

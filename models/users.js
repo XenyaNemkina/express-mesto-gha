@@ -44,12 +44,12 @@ userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new UnauthorizedError());
+        return Promise.reject(new UnauthorizedError('Необходимо авторизоваться'));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new UnauthorizedError());
+            return Promise.reject(new UnauthorizedError('Необходимо авторизоваться'));
           }
           return user;
         });

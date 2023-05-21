@@ -29,7 +29,7 @@ module.exports = ((e, req, res, next) => {
     return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Передан некорректный ID' });
   }
   if (e instanceof NotFoundError) {
-    return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
+    return res.status(HTTP_STATUS_NOT_FOUND).send({ message: e.message });
   }
   if (e instanceof DocumentNotFoundError) {
     return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточки не существует' });
