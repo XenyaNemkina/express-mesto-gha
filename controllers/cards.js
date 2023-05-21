@@ -1,5 +1,5 @@
 const http2 = require('http2');
-const { ForbiddenError } = require('../errors/ForbiddenError');
+// const { ForbiddenError } = require('../errors/ForbiddenError');
 const { NotFoundError } = require('../errors/NotFoundError');
 const Card = require('../models/cards');
 
@@ -33,7 +33,6 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findById(req.params.cardId)
-    .orFail()
     .then((card) => {
       if (!card) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такой карточки нет' });
