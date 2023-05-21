@@ -21,6 +21,9 @@ const findUser = (req, res, _id, next) => {
   User.findById(({ _id }))
     .orFail(() => next(new NotFoundError('Пользователь не найден')))
     .then((user) => {
+      if (!user) {
+        next(new NotFoundError('Пользователь не найден'));
+      }
       res.status(HTTP_STATUS_OK).send({ data: user });
     })
     .catch(next);
