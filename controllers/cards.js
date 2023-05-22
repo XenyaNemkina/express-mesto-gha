@@ -1,15 +1,11 @@
 const http2 = require('http2');
-// const { ForbiddenError } = require('../errors/ForbiddenError');
+const { ForbiddenError } = require('../errors/ForbiddenError');
 const { NotFoundError } = require('../errors/NotFoundError');
 const Card = require('../models/cards');
 
 const {
   HTTP_STATUS_OK, // 200
   HTTP_STATUS_CREATED, // 201
-} = http2.constants;
-const {
-  HTTP_STATUS_FORBIDDEN, // 403
-  HTTP_STATUS_NOT_FOUND, // 404
 } = http2.constants;
 
 const getCards = (req, res, next) => {
@@ -31,16 +27,16 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  const { cardId } = req.params;
   Card.findById(req.params.cardId)
+    .orFail
     .then((card) => {
       if (!card) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такой карточки нет' });
+        return next(new NotFoundError({ message: 'Такой карточки нет' }));
       }
       if (card.owner._id.toString() !== req.user._id.toString()) {
-        return res.status(HTTP_STATUS_FORBIDDEN).send({ message: 'Нельзя удалить чужую карточку!' });
+        return next(new ForbiddenError({ message: 'Нельзя удалить чужую карточку!' }));
       }
-      return Card.findByIdAndRemove(cardId)
+      return Card.findByIdAndRemove(req.params.cardId)
         .then((delCard) => res.status(HTTP_STATUS_OK).send(delCard))
         .catch(next);
     })
