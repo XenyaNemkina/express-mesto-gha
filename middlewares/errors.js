@@ -5,9 +5,9 @@ const {
 } = require('mongoose').Error;
 const http2 = require('http2');
 
-const { ForbiddenError } = require('../errors/ForbiddenError');
-const { NotFoundError } = require('../errors/NotFoundError');
-const { UnauthorizedError } = require('../errors/UnautorizedError');
+const UnauthorizedError = require('../errors/UnautorizedError');
+const ForbiddenError = require('../errors/ForbiddenError');
+const NotFoundError = require('../errors/NotFoundError');
 
 const {
   HTTP_STATUS_BAD_REQUEST, // 400
