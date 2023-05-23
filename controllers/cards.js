@@ -1,6 +1,7 @@
 const http2 = require('http2');
 const { ForbiddenError } = require('../errors/ForbiddenError');
 const { NotFoundError } = require('../errors/NotFoundError');
+// const { CastError } = require('../errors/CastError');
 const Card = require('../models/cards');
 
 const {
@@ -30,10 +31,10 @@ const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findById(cardId)
     .then((card) => {
-      console.log(cardId);
-      console.log(card);
-      console.log(card.owner.toString());
-      console.log(req.user._id);
+      console.log('cardid', cardId);
+      console.log('card', card);
+      console.log('card.owner.toString', card.owner.toString());
+      console.log('req.user.id', req.user._id);
       if (!card) {
         throw new NotFoundError({ message: 'Такой карточки нет' });
       }

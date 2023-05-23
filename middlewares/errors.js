@@ -1,5 +1,4 @@
 const {
-  CastError,
   ValidationError,
   DocumentNotFoundError,
 } = require('mongoose').Error;
@@ -8,6 +7,7 @@ const http2 = require('http2');
 const UnauthorizedError = require('../errors/UnautorizedError');
 const ForbiddenError = require('../errors/ForbiddenError');
 const NotFoundError = require('../errors/NotFoundError');
+const CastError = require('../errors/CastError');
 
 const {
   HTTP_STATUS_BAD_REQUEST, // 400
