@@ -30,19 +30,20 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findById(cardId)
-    .then((card) => {
+    .orFail()
+    .then(async (card) => {
       console.log('cardid', cardId);
       console.log('card', card);
       console.log('card.owner.toString', card.owner.toString());
       console.log('req.user.id', req.user._id);
       if (!card) {
-        throw new NotFoundError({ message: 'Такой карточки нет' });
+        throw new NotFoundError('Такой карточки нет');
       }
       if (card.owner.toString() !== req.user._id) {
-        throw new ForbiddenError({ message: 'Нельзя удалить чужую карточку!' });
+        throw new ForbiddenError('Нельзя удалить чужую карточку!');
       }
-      return Card.findByIdAndRemove(cardId)
-        .then((delCard) => res.status(HTTP_STATUS_OK).send(delCard));
+      const delCard = await Card.findByIdAndRemove(cardId);
+      return res.status(HTTP_STATUS_OK).send(delCard);
     })
     .catch(next);
 };
