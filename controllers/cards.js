@@ -1,6 +1,6 @@
 const http2 = require('http2');
-const { ForbiddenError } = require('../errors/ForbiddenError');
-const { NotFoundError } = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
+const NotFoundError = require('../errors/NotFoundError');
 // const { CastError } = require('../errors/CastError');
 const Card = require('../models/cards');
 
